@@ -5,39 +5,40 @@ const contactsPath = path.join(__dirname, "db/contacts.json");
 // TODO: задокументировать каждую функцию
 
 async function listContacts() {
-  return JSON.parse(await fs.readFile(contactsPath, "utf-8"));
+  const readedContacts = await fs.readFile(contactsPath, "utf-8");
+  const contacts = JSON.parse(readedContacts);
+  return contacts;
 }
 
 async function getContactById(contactId) {
+  const contactIdToString = contactId.toString();
   const contacts = await listContacts();
-  const contactIdFromArr = contacts.findIndex(
-    ({ id }) => id === contactId.toString()
-  );
-  if (contactIdFromArr === -1) {
-    console.log("There is no such contact!");
+  const contact = contacts.find(({ id }) => id === contactIdToString);
+  if (!contact) {
     return null;
   }
-  return contacts[contactIdFromArr];
+  return contact;
 }
 
 async function removeContact(contactId) {
+  const contactIdToString = contactId.toString();
   const contacts = await listContacts();
   const contactIdFromArr = contacts.findIndex(
-    ({ id }) => id === contactId.toString()
+    ({ id }) => id === contactIdToString
   );
   if (contactIdFromArr === -1) {
-    console.log("There is no such contact!");
     return null;
   }
   const deletedContact = contacts.splice(contactIdFromArr, 1);
-  fs.writeFile(contactsPath, JSON.stringify(contacts));
+  await fs.writeFile(contactsPath, JSON.stringify(contacts));
   return deletedContact;
 }
 async function addContact(name, email, phone) {
+  const newContact = { id: uuidv4(), name, email, phone };
   const contacts = await listContacts();
-  contacts.push({ id: uuidv4(), name, email, phone });
-  fs.writeFile(contactsPath, JSON.stringify(contacts));
-  return contacts;
+  contacts.push(newContact);
+  await fs.writeFile(contactsPath, JSON.stringify(contacts));
+  return newContact;
 }
 module.exports = {
   listContacts,
